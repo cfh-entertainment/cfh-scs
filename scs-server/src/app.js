@@ -47,9 +47,10 @@ mqttEvents.on('incoming', ({ topic, message }) => {
 app.get('/api/v1/health', (req, res) => {
   res.json({ status: 'ok' });
 });
-
-// Platzhalter für weitere Routen
-// ✅ hier später Controller-Routen einbinden
+const deviceRoutes = require('./routes/devices');
+app.use('/api/v1/devices', deviceRoutes);
+const areaRoutes = require('./routes/areas');
+app.use('/api/v1/areas', areaRoutes);
 
 // Serverstart
 const PORT = process.env.PORT || 3000;
