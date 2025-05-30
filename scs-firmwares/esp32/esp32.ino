@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <HTTPClient.h>
 
 const char* ssid       = "CFH-AP";
 const char* password   = "wow1234wlanlehr3";
@@ -26,6 +27,8 @@ void setup() {
     delay(500); Serial.print(".");
   }
   Serial.println("✅ verbunden");
+
+  registerDevice();
 
   client.setServer(mqttServer, mqttPort);
 }
@@ -68,4 +71,36 @@ void reconnect() {
       delay(2000);
     }
   }
+}
+
+void registerDevice() {
+  if (WiFi.status() != WL_CONNECTED) return;
+
+  HTTPClient http;
+  String serverUrl = "http://192.168.178.130:3000/api/v1/devices";
+  String payload = "{"
+                   "\"name\":\"" + String(deviceId) + "\","
+                   "\"type\":\"ESP32\","
+                   "\"ip\":\"" + WiFi.localIP().toString() + "\","
+                   "\"status\":\"online\""
+                   "}";
+
+  http.begin(serverUrl);
+  http.addHeader("Content-Type", "application/json");
+
+  int httpCode = http.POST(payload);
+  Serial.print("📡 Gerät-POST: ");
+  Serial.println(httpCode);
+
+  if (httpCode == 400 || httpCode == 409) {
+    // Gerät existiert evtl. schon → PATCH/PUT versuchen
+    serverUrl += "/by-name/" + String(deviceId);
+    http.begin(serverUrl);
+    http.addHeader("Content-Type", "application/json");
+    httpCode = http.PUT(payload);
+    Serial.print("🔁 Gerät-PUT: ");
+    Serial.println(httpCode);
+  }
+
+  http.end();
 }

@@ -51,6 +51,10 @@ const deviceRoutes = require('./routes/devices');
 app.use('/api/v1/devices', deviceRoutes);
 const areaRoutes = require('./routes/areas');
 app.use('/api/v1/areas', areaRoutes);
+const pinRoutes = require('./routes/pins');
+app.use('/api/v1/pins', pinRoutes);
+const presetRoutes = require('./routes/presets');
+app.use('/api/v1/presets', presetRoutes);
 
 // Serverstart
 const PORT = process.env.PORT || 3000;

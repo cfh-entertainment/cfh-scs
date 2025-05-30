@@ -27,7 +27,9 @@ router.put('/:id', async (req, res) => {
 
 // 📖 Alle Geräte
 router.get('/', async (req, res) => {
-  const devices = await Device.findAll({ include: 'Area' });
+  const devices = await Device.findAll({
+    include: { model: Area, attributes: ['id', 'name'] }
+  });
   res.json(devices);
 });
 
@@ -45,6 +47,15 @@ router.delete('/:id', async (req, res) => {
 
   await device.destroy();
   res.json({ deleted: true });
+});
+
+// 🔁 PUT by device name (z. B. esp32-01)
+router.put('/by-name/:name', async (req, res) => {
+  const device = await Device.findOne({ where: { name: req.params.name } });
+  if (!device) return res.status(404).json({ error: 'not found' });
+
+  await device.update(req.body);
+  res.json(device);
 });
 
 module.exports = router;
