@@ -151,16 +151,109 @@ cfh-scs/
      ```bash
      npm install
      ```
-   * Datenbank-Migrationen ausführen:
+   * Sequelize CLI installieren und Migrationen:
 
-     ```bash
-     npx sequelize db:migrate
-     ```
-   * Seed-Daten (optional für Testdaten):
+   a) Installiere `sequelize-cli` als Entwicklungs-Abhängigkeit:
 
-     ```bash
+   ```bash
+   npm install --save-dev sequelize-cli
+   ```
+
+   b) Initialisiere Sequelize-CLI, damit die Ordnerstruktur für Migrationen und Konfiguration angelegt wird. Führe im Ordner `scs-server` aus:
+
+   ```bash
+   npx sequelize-cli init
+   ```
+
+   Dies legt folgende Struktur an:
+
+   ```
+   scs-server/
+   ├── config/
+   │   └── config.json        # Datenbank-Konfiguration für Entwicklung, Test, Produktion
+   ├── migrations/           # Hier werden Migrationsskripte abgelegt
+   ├── models/               # Model-Dateien (Index und einzelne Modelle)
+   │   └── index.js
+   └── seeders/              # Seed-Dateien (falls gewünscht)
+   ```
+
+   c) **Konfiguriere `config/config.json`**. Öffne die Datei und passe sie an deine `.env`-Werte an. Beispiel:
+
+   ```json
+   {
+     "development": {
+       "username": "scs_user",
+       "password": "passwort",
+       "database": "scs_db",
+       "host": "127.0.0.1",
+       "dialect": "postgres"
+     },
+     "test": {
+       "username": "",
+       "password": null,
+       "database": "database_test",
+       "host": "127.0.0.1",
+       "dialect": "postgres"
+     },
+     "production": {
+       "username": "scs_user",
+       "password": "passwort",
+       "database": "scs_db",
+       "host": "127.0.0.1",
+       "dialect": "postgres"
+     }
+   }
+   ```
+
+   Verwende dieselben Zugangsdaten wie in deiner `.env`.
+
+   d) **Models-Ordner anpassen**: Da `npx sequelize-cli init` eine eigene `models`-Struktur erzeugt hat, verschiebe oder passe dein Model `area.js` in den neuen Ordner `models/` und entferne ggf. den alten `src/models`-Ordner.
+
+   e) **Erstelle Migration für Tabelle `areas`**:
+
+   ```bash
+   npx sequelize-cli model:generate --name Area --attributes name:string
+   ```
+
+   Diese Aktion erzeugt unter `migrations/` eine neue Datei (z. B. `20250606120000-create-area.js`) und unter `models/` eine Datei `area.js`.
+
+   f) **Prüfe & passe Migration an** (optional). Öffne die Migrationsdatei in `migrations/` und stelle sicher, dass sie wie folgt aussieht:
+
+   ```js
+   'use strict';
+   module.exports = {
+     up: async (queryInterface, Sequelize) => {
+       await queryInterface.createTable('areas', {
+         id: {
+           allowNull: false,
+           autoIncrement: true,
+           primaryKey: true,
+           type: Sequelize.INTEGER
+         },
+         name: {
+           type: Sequelize.STRING,
+           allowNull: false
+         }
+       });
+     },
+     down: async (queryInterface, Sequelize) => {
+       await queryInterface.dropTable('areas');
+     }
+   };
+   ```
+
+   g) **Führe Migration aus**:
+
+   ```bash
+   npx sequelize-cli db:migrate
+   ```
+
+   Nun wird die Tabelle `areas` in der Datenbank angelegt.
+
+Seed-Daten (optional für Testdaten):
+`bash
      npx sequelize db:seed:all
-     ```
+     `
 
 6. **Server starten**
 
@@ -243,97 +336,228 @@ cfh-scs/
 
 ### 3.2. Firmware-Entwicklung (Arduino IDE)
 
-1. **Arduino IDE einrichten (lokal auf Windows/PC)**
+Da wir nun separate Firmwares für jeden einzelnen Controller schreiben, erfolgt die Entwicklung jeweils in eigenen Unterordnern:
 
-   * Installiere Arduino IDE (empfohlen Version ≥ 1.8.19).
-   * Füge die Board-Manager-URLs hinzu:
+1. **Allgemeines Vorgehen**
+
+   * Öffne die Arduino IDE (Version ≥ 1.8.19) auf deinem Entwicklungsrechner.
+   * Füge im Menü **Datei → Voreinstellungen → Zusätzliche Boardverwalter-URLs** die folgenden URLs (je nach Controller) ein:
 
      * ESP8266: `http://arduino.esp8266.com/stable/package_esp8266com_index.json`
      * ESP32: `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
-   * Öffne Arduino IDE → **Datei** → **Voreinstellungen** → **Zusätzliche Boardverwalter-URLs** und füge beide URLs ein, getrennt durch Komma.
+     * Arduino Mega (Ethernet über SPI nutzt die Standardbibliothek, keine zusätzliche URL nötig)
+   * Installiere die notwendigen Bibliotheken über **Sketch → Bibliothek einbinden → Bibliotheken verwalten**:
 
-2. **Bibliotheken installieren**
+     * **ESP32/ESP8266**: PubSubClient (MQTT), ArduinoWebsockets oder HTTPClient (HTTP/WebSocket), Sensorbibliotheken (z. B. DHT für Temperatur/Feuchte), I²C-Bibliotheken (Wire), JSON-Parser (ArduinoJson).
+     * **Arduino Mega 2560 (Ethernet)**: Ethernet (für SPI-Ethernet-Shield), PubSubClient (MQTT), JSON-Parser (ArduinoJson).
 
-   * MQTT: PubSubClient
-   * HTTP/WebSocket: ArduinoWebsockets, HTTPClient
-   * Sensor-Bibliotheken (z. B. DHT für Temperatur/Feuchte)
-   * Weitere (z. B. SPI, Ethernet für Mega, Wire, etc.)
+2. **ESP32-Firmware (Ordner `scs-firmwares/esp32/`)**
 
-3. **Firmware-Grundstruktur erstellen**
-
-   * Lege in `scs-firmwares/esp32/` die Datei `main.ino` an.
-   * Beispielstruktur (inklusive plattformübergreifendem Setup):
+   * Lege die Datei `esp32_main.ino` in `scs-firmwares/esp32/` an.
+   * **Inhalt von `esp32_main.ino`:**
 
      ```cpp
-     // main.ino
+     #include <WiFi.h>
+     #include <PubSubClient.h>
+     #include <ArduinoJson.h>
+     // Bibliotheken für Sensoren & Aktoren (z. B. DHT, PWM)
 
-     #if defined(PLATFORM_ESP32)
-       #include "wifi_esp32.h"
-       #include "pins_esp32.h"
-     #elif defined(PLATFORM_ESP8266)
-       #include "wifi_esp8266.h"
-       #include "pins_esp8266.h"
-     #elif defined(PLATFORM_MEGA2560)
-       #include "wifi_mega.h"
-       #include "pins_mega.h"
-     #endif
+     // MQTT-Client und Netzwerkobjekte
+     WiFiClient espClient;
+     PubSubClient mqttClient(espClient);
 
-     #include "mqtt_client.h"
-     #include "sensor_aktoren.h"
-     #include "config_parser.h"
+     void initPins() {
+       // Hier alle Pin-Modi definieren (z. B. pinMode(XX, INPUT);)
+     }
+
+     void connectWiFi() {
+       WiFi.begin("DEIN_SSID", "DEIN_PASSWORT");
+       while (WiFi.status() != WL_CONNECTED) {
+         delay(500);
+       }
+     }
+
+     void connectMQTT() {
+       mqttClient.setServer("DEIN_MQTT_BROKER", 1883);
+       while (!mqttClient.connected()) {
+         mqttClient.connect("ESP32Client");
+       }
+       mqttClient.subscribe("scs/commands/#");
+     }
 
      void setup() {
-       // 1. Hardware initialisieren (Pins, Sensoren, Aktoren)
-       initPins();
-       initSensors();
+       Serial.begin(115200);
+       initPins(); // PIN-Konfiguration direkt nach { im setup
+       connectWiFi(); // Netzwerk-Verbindung nach Hardware-Initialisierung
+       connectMQTT(); // MQTT-Verbindung nach Netzwerkaufbau
+       // Weitere Initialisierungen (z. B. Sensor-Objekte)
+     }
 
-       // 2. WLAN/Ethernet-Verbindung herstellen
-       setupNetwork();
-
-       // 3. Verbindung zum SCS-Server (MQTT oder WebSocket)
-       setupMQTT();
-       // Optional HTTP/WebSocket verbinden
-
-       // 4. Konfiguration vom Server laden
-       requestConfiguration();
-
-       // 5. Heartbeat initialisieren (Timer)
-       startHeartbeatTimer();
+     void mqttCallback(char* topic, byte* payload, unsigned int length) {
+       // Empfangene Steuerbefehle verarbeiten
      }
 
      void loop() {
-       // 1. MQTT-/WebSocket-Client-Loop
+       if (!mqttClient.connected()) {
+         connectMQTT();
+       }
        mqttClient.loop();
-       // 2. Sensordaten lesen & ggf. senden
-       readSensors();
-       // 3. Aktor-Logik umsetzen
-       processActuatorCommands();
-       // 4. Heartbeat senden (z. B. jede Minute)
-       sendHeartbeatIfDue();
-       // 5. Lokale Logik (z. B. Notfallabschaltung)
-       localSafetyChecks();
+       // Sensordaten lesen und senden
+       // Aktor-Befehle umsetzen
+       // Heartbeat senden (z. B. alle 60 Sekunden)
      }
      ```
-   * Ersetze in den Dateien `wifi_*.h`, `pins_*.h` usw. die jeweiligen Plattform-spezifischen Implementierungen.
-   * **Einfügepunkt Hinweis:**
-     In der Datei `main.ino` im Abschnitt `setup()` müssen folgende Zeilen eingetragen werden:
+   * **Einfügepunkt-Hinweise:**
 
-     1. `initPins();` → direkt nach `{`
-     2. `setupNetwork();` → nach Hardware-Initialisierung
-     3. `setupMQTT();` → nach Netzwerkaufbau
-     4. `requestConfiguration();`
-     5. `startHeartbeatTimer();`
+     * `initPins();` direkt nach `Serial.begin()` im `setup()`.
+     * `connectWiFi();` nach Pin-Initialisierung.
+     * `connectMQTT();` nach Netzwerkaufbau.
+     * `mqttCallback`-Funktion als Callback registrieren (z. B. via `mqttClient.setCallback(mqttCallback);`).
 
-4. **Programmieren & Hochladen**
+3. **ESP8266-Firmware (Ordner `scs-firmwares/esp8266/`)**
 
-   * Öffne Arduino IDE → Wähle Board und Port (z. B. ESP32 Dev Module).
-   * Kompilieren und Hochladen.
-   * Überprüfe die Seriellen Ausgaben für Debug-Informationen (z. B. `Serial.begin(115200);`).
+   * Lege die Datei `esp8266_main.ino` in `scs-firmwares/esp8266/` an.
+   * **Inhalt von `esp8266_main.ino`:**
 
-5. **OTA-Update (später)**
+     ```cpp
+     #include <ESP8266WiFi.h>
+     #include <PubSubClient.h>
+     #include <ArduinoJson.h>
+     // Bibliotheken für Sensoren & Aktoren (z. B. DHT)
 
-   * Planung: Admin-Frontend lädt Firmware hoch → Server verteilt per MQTT oder HTTP OTA.
-   * Implementierung in Firmware: In `main.ino` OTA-Update-Handler ergänzen.
+     WiFiClient espClient;
+     PubSubClient mqttClient(espClient);
+
+     void initPins() {
+       // pinMode-Definitionen (z. B. pinMode(D1, INPUT_PULLUP);)
+     }
+
+     void connectWiFi() {
+       WiFi.begin("DEIN_SSID", "DEIN_PASSWORT");
+       while (WiFi.status() != WL_CONNECTED) {
+         delay(500);
+       }
+     }
+
+     void connectMQTT() {
+       mqttClient.setServer("DEIN_MQTT_BROKER", 1883);
+       while (!mqttClient.connected()) {
+         mqttClient.connect("ESP8266Client");
+       }
+       mqttClient.subscribe("scs/commands/#");
+       mqttClient.setCallback(mqttCallback);
+     }
+
+     void setup() {
+       Serial.begin(115200);
+       initPins();
+       connectWiFi();
+       connectMQTT();
+       // Sensoren initialisieren
+     }
+
+     void mqttCallback(char* topic, byte* payload, unsigned int length) {
+       // Verarbeitung der eingehenden Nachrichten
+     }
+
+     void loop() {
+       if (!mqttClient.connected()) {
+         connectMQTT();
+       }
+       mqttClient.loop();
+       // Sensorwerte lesen & posten
+       // Aktor-Befehle ausführen
+       // Heartbeat senden
+     }
+     ```
+   * **Einfügepunkt-Hinweise:**
+
+     * `initPins();` direkt nach `Serial.begin()`.
+     * `connectWiFi();` nach Pin-Initialisierung.
+     * `connectMQTT();` nach Netzwerkaufbau.
+
+4. **Arduino Mega 2560-Firmware (Ethernet über SPI, Ordner `scs-firmwares/mega2560/`)**
+
+   * Lege die Datei `mega2560_main.ino` in `scs-firmwares/mega2560/` an.
+   * **Inhalt von `mega2560_main.ino`:**
+
+     ```cpp
+     #include <SPI.h>
+     #include <Ethernet.h>
+     #include <PubSubClient.h>
+     #include <ArduinoJson.h>
+     // Bibliotheken für Sensoren & Aktoren
+
+     byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
+     IPAddress ip(192,168,1,177); // Statische IP, falls gewünscht
+     EthernetClient ethClient;
+     PubSubClient mqttClient(ethClient);
+
+     void initPins() {
+       // pinMode-Konfigurationen
+     }
+
+     void connectEthernet() {
+       Ethernet.begin(mac, ip);
+       delay(1000);
+     }
+
+     void connectMQTT() {
+       mqttClient.setServer("DEIN_MQTT_BROKER", 1883);
+       while (!mqttClient.connected()) {
+         mqttClient.connect("Mega2560Client");
+       }
+       mqttClient.subscribe("scs/commands/#");
+       mqttClient.setCallback(mqttCallback);
+     }
+
+     void setup() {
+       Serial.begin(115200);
+       initPins();
+       connectEthernet();
+       connectMQTT();
+       // Sensoren initialisieren
+     }
+
+     void mqttCallback(char* topic, byte* payload, unsigned int length) {
+       // Verarbeitung eingehender Befehle
+     }
+
+     void loop() {
+       if (!mqttClient.connected()) {
+         connectMQTT();
+       }
+       mqttClient.loop();
+       // Sensoren lesen & senden
+       // Aktoren schalten
+       // Heartbeat senden
+     }
+     ```
+   * **Einfügepunkt-Hinweise:**
+
+     * `initPins();` direkt nach `Serial.begin()`.
+     * `connectEthernet();` nach Pin-Initialisierung.
+     * `connectMQTT();` nach Netzwerkaufbau.
+
+5. **Hinweise zu Sensor- und Aktor-Libraries**
+
+   * Jeder Controller nutzt die gleichen Sensor-Bibliotheken (z. B. DHT), die in den jeweiligen Unterordnern installiert sein müssen.
+   * Für PWM-Lüfter oder Relais sollten geeignete Treiber- und Timing-Funktionen eingebunden werden.
+   * JSON-Parsing erfolgt plattformübergreifend mit ArduinoJson; ggf. Versionskompatibilität beachten.
+
+6. **Upload-Prozess (für alle Controller)**
+
+   * Wähle in der Arduino IDE das richtige Board und den entsprechenden COM-Port:
+
+     * **ESP32**: Board „ESP32 Dev Module“.
+     * **ESP8266**: Board „NodeMCU 1.0 (ESP-12E Module)“ oder ähnliches.
+     * **Arduino Mega 2560**: Board „Arduino Mega or Mega 2560“. Port entsprechend der USB-Verbindung.
+   * Kompiliere und lade hoch. Überprüfe die serielle Konsole (115200 Baud) auf Verbindungs- und Debug-Meldungen.
+
+7. **OTA-Updates (Zukunft)**
+
+   * Geplant ist ein Mechanismus, bei dem der Server neue Firmware-Dateien hostet und die Controller über MQTT oder HTTP einen OTA-Update-Aufruf erhalten.
+   * Implementiere dazu in den jeweiligen Firmwares später eine Update-Routine, die im `loop()` nach einer speziellen MQTT-Nachricht (z. B. `scs/ota/update`) sucht und dann die neue Firmware herunterlädt.
 
 ---
 
@@ -475,7 +699,7 @@ module.exports = (sequelize, DataTypes) => {
 
   * `id`, `ipAddress`, `name`, `areaId`, `lastSeen`, `status`.
 
-**Flutter UI (in `controller_list_screen.dart`):**
+**Flutter UI (in ********`controller_list_screen.dart`********):**
 
 1. Button "Neuen Controller hinzufügen".
 2. Popup: Scan-Netzwerk oder IP eingeben.
