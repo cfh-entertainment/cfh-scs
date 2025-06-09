@@ -1,54 +1,62 @@
-// lib/services/device_service.dart
-
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../models/device.dart';
 
-
-// Datenmodell für Device
-class Device {
-  final int id;
-  final String deviceId;
-  final String type;
-  final DateTime lastSeen;
-
-  Device({
-    required this.id,
-    required this.deviceId,
-    required this.type,
-    required this.lastSeen,
-  });
-
-  factory Device.fromJson(Map<String, dynamic> json) {
-    return Device(
-      id: json['id'] as int,
-      deviceId: json['deviceId'] as String,
-      type: json['type'] as String,
-      lastSeen: DateTime.parse(json['lastSeen'] as String),
-    );
-  }
-}
-
-// Service, um Geräte per REST zu laden
 class DeviceService {
   final Dio _dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  DeviceService(String baseUrl) : _dio = Dio(BaseOptions(baseUrl: baseUrl));
+  DeviceService(String baseUrl)
+    : _dio = Dio(BaseOptions(baseUrl: baseUrl));
 
+  // 1) fetchDevices – liest alle Geräte
   Future<List<Device>> fetchDevices() async {
-    // 1) Token auslesen
     final token = await _storage.read(key: 'jwt');
-    if (token == null) throw Exception('Kein JWT gefunden');
-
-    // 2) GET mit Authorization-Header
     final resp = await _dio.get(
       '/devices',
-      options: Options(
-        headers: { 'Authorization': 'Bearer $token' }
-      ),
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
     );
-
     final data = resp.data as List<dynamic>;
-    return data.map((e) => Device.fromJson(e as Map<String, dynamic>)).toList();
+    return data
+        .map((e) => Device.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  // 2) createDevice – anlegen eines neuen Geräts
+  Future<Device> createDevice(String deviceId, String type) async {
+    final token = await _storage.read(key: 'jwt');
+    final resp = await _dio.post(
+      '/devices',
+      data: {'deviceId': deviceId, 'type': type},
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+    return Device.fromJson(resp.data as Map<String, dynamic>);
+  }
+
+  // 3) updateDevice – bearbeiten eines bestehenden Geräts
+  Future<void> updateDevice(int id, {
+    String? deviceId,
+    String? type,
+    Map<String, dynamic>? configJson,
+  }) async {
+    final token = await _storage.read(key: 'jwt');
+    await _dio.put(
+      '/devices/$id',
+      data: {
+        if (deviceId != null)  'deviceId':  deviceId,
+        if (type       != null)  'type':      type,
+        if (configJson != null)  'configJson': configJson,
+      },
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
+  }
+
+  // 4) deleteDevice – löscht ein Gerät
+  Future<void> deleteDevice(int id) async {
+    final token = await _storage.read(key: 'jwt');
+    await _dio.delete(
+      '/devices/$id',
+      options: Options(headers: {'Authorization': 'Bearer $token'}),
+    );
   }
 }

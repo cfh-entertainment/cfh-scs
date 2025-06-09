@@ -1,6 +1,24 @@
 'use strict';
 
-const { Device } = require('../models');
+const { Device, Command } = require('../models');
+const { Op } = require('sequelize');
+
+// GET /api/v1/devices/:id/commands
+exports.getCommands = async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Beispiel: array von Objekten { pin: 4, value: 1 }
+    // später aus DB oder Regel-Engine generieren
+    const commands = await Command.findAll({ where: { deviceId: id } });
+    return res.json(commands.map(c => ({
+      pin:   c.pinId,
+      value: c.value
+    })));
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Fehler beim Laden der Befehle.' });
+  }
+};
 
 // GET /api/v1/devices
 exports.listDevices = async (req, res) => {
@@ -29,6 +47,23 @@ exports.getDevice = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Fehler beim Laden des Geräts.' });
+  }
+};
+
+// GET /api/v1/devices/:id/config
+exports.getConfig = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const device = await Device.findByPk(id, {
+      attributes: ['id','deviceId','configJson']
+    });
+    if (!device) {
+      return res.status(404).json({ message: 'Gerät nicht gefunden.' });
+    }
+    return res.json({ config: device.configJson });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Fehler beim Laden der Konfiguration.' });
   }
 };
 

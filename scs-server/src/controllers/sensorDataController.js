@@ -1,6 +1,85 @@
 'use strict';
 
 const { SensorData, Device } = require('../models');
+const { Op }                 = require('sequelize');
+
+// CSV-Export /api/v1/devices/:deviceId/data/export?from=<ISO>&to=<ISO>
+exports.exportData = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    const { from, to } = req.query;
+    const device = await Device.findByPk(deviceId);
+    if (!device) {
+      return res.status(404).json({ message: 'Gerät nicht gefunden.' });
+    }
+    const tTo   = to   ? new Date(to)   : new Date();
+    const tFrom = from ? new Date(from) : new Date(tTo.getTime() - 24*60*60*1000);
+    const entries = await SensorData.findAll({
+      where: {
+        deviceId: device.id,
+        timestamp: { [Op.between]: [tFrom, tTo] }
+      },
+      order: [['timestamp','ASC']]
+    });
+    // Header setzen
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="device_${deviceId}_data.csv"`);
+    // CSV-Kopf
+    let csv = 'timestamp';
+    // Spalten aus DatenJSON dynamisch ermitteln
+    const cols = entries.length
+      ? Object.keys(entries[0].dataJson)
+      : [];
+    cols.forEach(col => { csv += `,${col}`; });
+    csv += '\n';
+    // Zeilen
+    entries.forEach(e => {
+      csv += `${e.timestamp.toISOString()}`;
+      cols.forEach(col => {
+        const v = e.dataJson[col];
+        csv += `,${v != null ? v : ''}`;
+      });
+      csv += '\n';
+    });
+    return res.send(csv);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Fehler beim Exportieren der Daten.' });
+  }
+};
+
+// LISTE /api/v1/devices/:deviceId/data?from=<ISO>&to=<ISO>
+exports.listData = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    const { from, to } = req.query;
+
+    // Gerät prüfen
+    const device = await Device.findByPk(deviceId);
+    if (!device) {
+      return res.status(404).json({ message: 'Gerät nicht gefunden.' });
+    }
+
+    // Zeitfilter parsen, Standard: letzte 24 Stunden
+    const tTo   = to   ? new Date(to)   : new Date();
+    const tFrom = from ? new Date(from) : new Date(tTo.getTime() - 24*60*60*1000);
+
+    const entries = await SensorData.findAll({
+      where: {
+        deviceId: device.id,
+        timestamp: {
+          [Op.between]: [tFrom, tTo]
+        }
+      },
+      order: [['timestamp','ASC']]
+    });
+
+    return res.json(entries);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Fehler beim Laden der Sensordaten.' });
+  }
+};
 
 // POST /api/v1/devices/:deviceId/data
 exports.createData = async (req, res) => {

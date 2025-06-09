@@ -27,4 +27,8 @@ class AuthService {
   }
 
   Future<String?> getToken() => _storage.read(key: 'jwt');
+
+  Future<void> logout() async {
+    await _storage.delete(key: 'jwt');
+  }
 }
