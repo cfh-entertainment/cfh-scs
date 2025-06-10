@@ -44,28 +44,19 @@ void setup() {
   }
   Serial.println("\nWLAN verbunden!");
 
-  #ifdef ESP32
-    SPIFFS.begin(true);
-  #elif defined(ESP8266)
-    SPIFFS.begin();
-  #endif
-
-  // Token aus Datei laden, falls vorhanden
-  if (SPIFFS.exists("/token.txt")) {
-    File f = SPIFFS.open("/token.txt", "r");
-    jwtToken = f.readString();
-    f.close();
-    Serial.println("JWT aus SPIFFS geladen");
-  } else {
-    // Login durchführen, wenn kein Token da ist
-    loginAndStoreToken();
-  }
+  loginAndStoreToken();
 
   // ① Konfiguration vom Server holen
   HTTPClient http;
-  String url = String("http://") + SERVER_IP + ":" + SERVER_PORT +
-               "/api/v1/devices/" + DEVICE_ID + "/config";
+  String url = String("http://")
+  + SERVER_IP
+  + ":"
+  + String(SERVER_PORT)
+  + "/api/v1/devices/"
+  + String(DEVICE_ID)
+  + "/config";
   http.begin(url);
+  http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", "Bearer " + jwtToken);
   int code = http.GET();
   if (code == 200) {
@@ -132,17 +123,18 @@ void sendSensorData() {
   }
 
   // URL zusammenbauen: http://IP:Port/api/v1/devices/DEVICE_ID/data
-  String url = String("http://") + SERVER_IP + ":" + SERVER_PORT +
-               "/api/v1/devices/" + DEVICE_ID + "/data";
+  String url = String("http://")
+  + SERVER_IP
+  + ":"
+  + String(SERVER_PORT)
+  + "/api/v1/devices/"
+  + String(DEVICE_ID)
+  + "/data";
 
   // HTTP-Client starten
-  #ifdef ESP32
-    HTTPClient http;
-    http.begin(url);
-  #elif defined(ESP8266)
-    HTTPClient http;
-    http.begin(url);
-  #endif
+  HTTPClient http;
+  http.begin(url);
+
 
   http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", "Bearer " + jwtToken);
@@ -161,9 +153,15 @@ void sendSensorData() {
 // ★ Neue Funktion am Ende hinzufügen:
 void processCommands() {
   HTTPClient http;
-  String url = String("http://") + SERVER_IP + ":" + SERVER_PORT +
-               "/api/v1/devices/" + DEVICE_ID + "/commands";
+  String url = String("http://")
+  + SERVER_IP
+  + ":"
+  + String(SERVER_PORT)
+  + "/api/v1/devices/"
+  + String(DEVICE_ID)
+  + "/commands";
   http.begin(url);
+  http.addHeader("Content-Type", "application/json");
   http.addHeader("Authorization", "Bearer " + jwtToken);
   int code = http.GET();
   if (code == 200) {
@@ -192,9 +190,14 @@ void processCommands() {
 // ★ Funktion: Login holen und Token in SPIFFS sichern
 void loginAndStoreToken() {
   HTTPClient http;
-  String url = String("http://") + SERVER_IP + ":" + SERVER_PORT + "/api/v1/auth/login";
+  String url = String("http://") 
+  + SERVER_IP 
+  + ":" 
+  + String(SERVER_PORT)
+  + "/api/v1/auth/login";
   http.begin(url);
   http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", "Bearer " + jwtToken);
 
   // Login-Body
   StaticJsonDocument<200> doc;
