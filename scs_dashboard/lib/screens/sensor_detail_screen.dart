@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../services/sensor_data_service.dart';
 import '../widgets/simple_line_chart.dart';
+import '../models/sensor_data.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
+import '../services/ws_service.dart';
 
 class SensorDetailScreen extends StatefulWidget {
   final String ip;
@@ -78,22 +81,37 @@ class _SensorDetailScreenState extends State<SensorDetailScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // 1) Eigenes Chart-Widget zeigen
-                  SimpleLineChart(data: _data),
-                  const SizedBox(height: 16),
-                  // 2) Liste der Messpunkte
+                   // 1) Liste der rohen Daten zur Kontrolle
                   Expanded(
-                    child: ListView.builder(
-                      itemCount: _data.length,
-                      itemBuilder: (context, i) {
-                        final e = _data[i];
+                    child: ListView(
+                      children: _data.map((sd) {
                         return ListTile(
-                          title: Text(
-                            e.timestamp.toLocal().toString(),
-                          ),
-                          trailing: Text(e.value.toString()),
+                          title: Text(sd.timestamp.toLocal().toString()),
+                          subtitle: Text(sd.dataJson.toString()),
                         );
-                      },
+                      }).toList(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 2) Ersten Kanal im Chart darstellen
+                  SizedBox(
+                    height: 200,
+                    child: charts.TimeSeriesChart(
+                      [
+                        charts.Series<SensorData, DateTime>(
+                          id: _data.isNotEmpty
+                              ? _data.first.dataJson.keys.first
+                              : 'Daten',
+                          domainFn: (d, _) => d.timestamp,
+                          measureFn: (d, _) =>
+                              (d.dataJson[d.dataJson.keys.first] as num)
+                                  .toDouble(),
+                          data: _data,
+                        ),
+                      ],
+                      animate: true,
                     ),
                   ),
                 ],

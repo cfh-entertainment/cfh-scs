@@ -17,7 +17,7 @@ const char* WIFI_PASSWORD = "wow1234wlanlehr3";
 // ③ Server- und Geräte-Konfiguration
 const char* SERVER_IP     = "192.168.178.25";      // nur IP, kein Protokoll/Port
 const uint16_t SERVER_PORT= 3000;
-const uint16_t DEVICE_ID  = 1;                  // entspricht device.id in MySQL
+const uint16_t DEVICE_ID  = 3;                  // entspricht device.id in MySQL
 
 // ④ Pin-Modi definieren
 //    Hier später dynamisch aus Server-Config laden

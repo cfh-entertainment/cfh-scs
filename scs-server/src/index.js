@@ -32,14 +32,6 @@ const io = socketIo(server, {
   const userRoutes = require('./routes/user');
   app.use('/api/v1/users', userRoutes);
 
-// Device-Management
-  const deviceRoutes = require('./routes/device');
-  app.use('/api/v1/devices', deviceRoutes);
-
-// Rule-Management
-  const ruleRoutes = require('./routes/rule');
-  app.use('/api/v1/rules', ruleRoutes);
-
 // SensorData-Management
   const sensorDataRoutes = require('./routes/sensorData');
   app.use(
@@ -53,6 +45,18 @@ const io = socketIo(server, {
     '/api/v1/devices/:deviceId/logs',
     logRoutes
   );
+
+// Command-Manegement
+//  const commandRoutes = require('./routes/command');
+//  app.use('/api/v1/devices/:deviceId/losg', commandRoutes);
+
+// Device-Management
+  const deviceRoutes = require('./routes/device');
+  app.use('/api/v1/devices', deviceRoutes);
+
+// Rule-Management
+  const ruleRoutes = require('./routes/rule');
+  app.use('/api/v1/rules', ruleRoutes);
 
 // 4. Datenbankverbindung initialisieren
 const sequelize = new Sequelize(

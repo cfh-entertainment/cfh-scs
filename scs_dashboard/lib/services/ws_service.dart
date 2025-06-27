@@ -26,7 +26,14 @@ class WSService {
     });
     _socket.on('deviceCreated', (data) => onCreated(data as Map<String, dynamic>));
     _socket.on('deviceUpdated', (data) => onUpdated(data as Map<String, dynamic>));
-    _socket.on('deviceDeleted', (data) => onDeleted((data as Map)['id'] as int));
+    _socket.on('deviceDeleted', (data) {
+      final map = data as Map<String, dynamic>;
+      final rawId = map['id'];
+      final id = rawId is int
+        ? rawId
+        : int.tryParse(rawId.toString()) ?? 0;
+      onDeleted(id);
+    });
   }
 
   void disconnect() {
