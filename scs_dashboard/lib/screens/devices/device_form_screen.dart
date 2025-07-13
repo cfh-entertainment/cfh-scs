@@ -49,6 +49,13 @@ class _DeviceFormScreenState extends State<DeviceFormScreen> {
   }
 
   @override
+  void dispose() {
+    _deviceIdCtrl.dispose();
+    _typeCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isNew = widget.device == null;
     return Scaffold(
