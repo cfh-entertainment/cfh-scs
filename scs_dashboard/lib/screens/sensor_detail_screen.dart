@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-import '../services/sensor_data_service.dart';
-import '../widgets/simple_line_chart.dart';
-import '../models/sensor_data.dart';
+// Nur die Service-Klasse importieren, nicht das Modell:
+import '../services/sensor_data_service.dart' show SensorDataService;
+// Wenn du das eigene Chart-Widget weiter nutzt, lass es stehen.
+// import '../widgets/simple_line_chart.dart';
+// Nur das Modell importieren:
+import '../models/sensor_data.dart' show SensorData;
+// Charts-Flutter mit Alias behalten
 import 'package:charts_flutter/flutter.dart' as charts;
 import '../services/ws_service.dart';
 
@@ -84,7 +88,7 @@ class _SensorDetailScreenState extends State<SensorDetailScreen> {
                    // 1) Liste der rohen Daten zur Kontrolle
                   Expanded(
                     child: ListView(
-                      children: _data.map((sd) {
+                      children: _data.map<Widget>((sd) {
                         return ListTile(
                           title: Text(sd.timestamp.toLocal().toString()),
                           subtitle: Text(sd.dataJson.toString()),
