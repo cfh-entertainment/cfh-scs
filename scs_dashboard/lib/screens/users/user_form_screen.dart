@@ -54,6 +54,13 @@ class _UserFormScreenState extends State<UserFormScreen> {
   }
 
   @override
+  void dispose() {
+    _usernameCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isNew = widget.user == null;
     return Scaffold(

@@ -82,6 +82,16 @@ class _RuleFormScreenState extends State<RuleFormScreen> {
   }
 
   @override
+  void dispose() {
+    _deviceIdCtrl.dispose();
+    _pinIdCtrl.dispose();
+    _conditionCtrl.dispose();
+    _actionCtrl.dispose();
+    _scheduleCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isNew = widget.rule == null;
     return Scaffold(
