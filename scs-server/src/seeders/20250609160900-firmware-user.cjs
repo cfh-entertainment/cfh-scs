@@ -3,7 +3,8 @@ const bcrypt = require('bcrypt');
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const passwordHash = bcrypt.hashSync('firmware123', 10);
+    // Firmware nutzt dasselbe Standardpasswort wie der Demo-Admin
+    const passwordHash = bcrypt.hashSync('wow1234wl', 10);
     await queryInterface.bulkInsert('Users', [{
       username: 'scs_firmware',
       passwordHash,
