@@ -17,7 +17,7 @@ const char* WIFI_PASSWORD = "wow1234wlanlehr3";
 // ③ Server- und Geräte-Konfiguration
 const char* SERVER_IP     = "192.168.178.25";      // nur IP, kein Protokoll/Port
 const uint16_t SERVER_PORT= 3000;
-const uint16_t DEVICE_ID  = 3;                  // entspricht device.id in MySQL
+uint16_t deviceId  = 0;                 // wird bei Registrierung gesetzt
 
 // ④ Pin-Modi definieren
 //    Hier später dynamisch aus Server-Config laden
@@ -37,6 +37,9 @@ String jwtToken = "";
 // ⑤ Initialisierung
 void setup() {
   Serial.begin(115200);
+  SPIFFS.begin(true);
+  readToken();
+  readDeviceId();
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -44,7 +47,12 @@ void setup() {
   }
   Serial.println("\nWLAN verbunden!");
 
-  loginAndStoreToken();
+  if (jwtToken == "") {
+    loginAndStoreToken();
+  }
+  if (deviceId == 0) {
+    registerDevice();
+  }
 
   // ① Konfiguration vom Server holen
   HTTPClient http;
@@ -53,7 +61,7 @@ void setup() {
   + ":"
   + String(SERVER_PORT)
   + "/api/v1/devices/"
-  + String(DEVICE_ID)
+  + String(deviceId)
   + "/config";
   http.begin(url);
   http.addHeader("Content-Type", "application/json");
@@ -122,13 +130,13 @@ void sendSensorData() {
     dataJson[String(pin)] = value;
   }
 
-  // URL zusammenbauen: http://IP:Port/api/v1/devices/DEVICE_ID/data
+  // URL zusammenbauen: http://IP:Port/api/v1/devices/<deviceId>/data
   String url = String("http://")
   + SERVER_IP
   + ":"
   + String(SERVER_PORT)
   + "/api/v1/devices/"
-  + String(DEVICE_ID)
+  + String(deviceId)
   + "/data";
 
   // HTTP-Client starten
@@ -158,7 +166,7 @@ void processCommands() {
   + ":"
   + String(SERVER_PORT)
   + "/api/v1/devices/"
-  + String(DEVICE_ID)
+  + String(deviceId)
   + "/commands";
   http.begin(url);
   http.addHeader("Content-Type", "application/json");
@@ -221,6 +229,59 @@ void loginAndStoreToken() {
     Serial.println("JWT in SPIFFS gespeichert");
   } else {
     Serial.printf("Login fehlgeschlagen: %d\n", code);
+  }
+  http.end();
+}
+
+void readToken() {
+  if (SPIFFS.exists("/token.txt")) {
+    File f = SPIFFS.open("/token.txt", "r");
+    jwtToken = f.readString();
+    f.close();
+    jwtToken.trim();
+  }
+}
+
+void readDeviceId() {
+  if (SPIFFS.exists("/device.txt")) {
+    File f = SPIFFS.open("/device.txt", "r");
+    deviceId = f.readString().toInt();
+    f.close();
+  }
+}
+
+void registerDevice() {
+  HTTPClient http;
+  String url = String("http://")
+  + SERVER_IP
+  + ":"
+  + String(SERVER_PORT)
+  + "/api/v1/devices/register";
+  http.begin(url);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", "Bearer " + jwtToken);
+
+  StaticJsonDocument<200> doc;
+  doc["deviceId"] = WiFi.macAddress();
+#ifdef ESP32
+  doc["type"] = "esp32";
+#else
+  doc["type"] = "esp8266";
+#endif
+  String body;
+  serializeJson(doc, body);
+  int code = http.POST(body);
+  if (code == 201) {
+    String resp = http.getString();
+    StaticJsonDocument<128> jdoc;
+    deserializeJson(jdoc, resp);
+    deviceId = jdoc["id"].as<uint16_t>();
+    File f = SPIFFS.open("/device.txt", "w");
+    f.print(deviceId);
+    f.close();
+    Serial.printf("Gerät registriert mit ID %d\n", deviceId);
+  } else {
+    Serial.printf("Registrierung fehlgeschlagen: %d\n", code);
   }
   http.end();
 }

@@ -9,7 +9,9 @@ const { authenticate, authorize } = require('../utils/authMiddleware');
 router.get('/',      		authenticate, authorize(['admin','user','viewer']), 	deviceController.listDevices);
 router.get('/:id',   		authenticate, authorize(['admin','user','viewer']), 	deviceController.getDevice);
 router.get('/:id/config',	authenticate, authorize(['admin','user','viewer']),	deviceController.getConfig);
-router.get('/:id/commands',	authenticate, authorize(['admin','user','viewer']),	deviceController.getCommands);
+// Registrierung durch Firmware
+router.post('/register', authenticate, authorize(['admin','user']), deviceController.registerDevice);
+router.get('/:id/commands',     authenticate, authorize(['admin','user','viewer']),     deviceController.getCommands);
 
 // Nur Admins dürfen anlegen, ändern, löschen
 router.post('/',     		authenticate, authorize(['admin']), 			deviceController.createDevice);

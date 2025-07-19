@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-// Nur die Service-Klasse importieren, nicht das Modell:
 import '../services/sensor_data_service.dart' show SensorDataService;
-// Wenn du das eigene Chart-Widget weiter nutzt, lass es stehen.
-// import '../widgets/simple_line_chart.dart';
-// Nur das Modell importieren:
 import '../models/sensor_data.dart' show SensorData;
-// Charts-Flutter mit Alias behalten
-import 'package:charts_flutter/flutter.dart' as charts;
+import '../widgets/simple_line_chart.dart';
 import '../services/ws_service.dart';
 
 class SensorDetailScreen extends StatefulWidget {
@@ -102,21 +97,7 @@ class _SensorDetailScreenState extends State<SensorDetailScreen> {
                   // 2) Ersten Kanal im Chart darstellen
                   SizedBox(
                     height: 200,
-                    child: charts.TimeSeriesChart(
-                      [
-                        charts.Series<SensorData, DateTime>(
-                          id: _data.isNotEmpty
-                              ? _data.first.dataJson.keys.first
-                              : 'Daten',
-                          domainFn: (d, _) => d.timestamp,
-                          measureFn: (d, _) =>
-                              (d.dataJson[d.dataJson.keys.first] as num)
-                                  .toDouble(),
-                          data: _data,
-                        ),
-                      ],
-                      animate: true,
-                    ),
+                    child: SimpleLineChart(data: _data),
                   ),
                 ],
               ),
