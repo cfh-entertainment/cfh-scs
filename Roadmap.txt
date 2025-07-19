@@ -1,0 +1,43 @@
+Phase 1 - Grundlegende Infrastruktur
+-----------------------------------
+1. Repository aufraeumen und Basiskomponenten lauffaehig machen (Firmware, Server, Control-App).
+2. CI/CD einrichten (Build/Test fuer Firmware, Node-Server und Flutter-App).
+3. Datenbank-Migrationen (MariaDB) fuer Geraete, Benutzer und Sensorlogs implementieren.
+4. Grundlegende Authentifizierung (JWT) und WebSocket-Anbindung auf dem Server bereitstellen.
+5. Firmware-Provisionierung via WLAN-Hotspot und automatische Registrierung am Server.
+
+Phase 2 - Sensor- und Aktorverwaltung
+------------------------------------
+1. Dynamische Pin-Konfiguration aus dem Server-JSON abrufen und in der Firmware umsetzen.
+2. REST-Endpunkte fuer Geraete-CRUD sowie Sensor-Daten erfassen und speichern.
+3. Erste Version des Flutter-Dashboards mit Login, Geraeteliste und Sensor-Detailansicht (inkl. Charts).
+4. Live-Datenuebertragung per WebSocket und Anzeige im Dashboard.
+5. Erweiterungsmodule (MCP23017, ADS1115) als optionale Konfiguration integrieren.
+
+Phase 3 - Regel- und Szenenengine
+---------------------------------
+1. Zeit- und zustandsbasierte Regeln auf dem Server hinterlegen ("Wenn…Dann…").
+2. Cron-basierte Aktionen fuer zeitgesteuerte Szenarien implementieren.
+3. Grafischer Regel- und Szeneneditor in der Control-App bereitstellen.
+4. Not-Aus-Mechanismen und manuelles Override von Aktoren ergaenzen.
+
+Phase 4 - Benutzer- und Rechteverwaltung
+----------------------------------------
+1. Rollenbasiertes Rechtesystem (Admin, User, Viewer) im Server ausbauen.
+2. Benutzerverwaltung in der Control-App inkl. Login/Logout, Passwortaenderung.
+3. Fein granulare Zugriffskontrolle auf Geraete, Regeln und Logs.
+
+Phase 5 - Monitoring, Logging und Alarmierung
+--------------------------------------------
+1. Sammeln von Telemetrie- und System-Logs, CSV-Export.
+2. Echtzeit-Log-Viewer im Dashboard.
+3. Benachrichtigungssystem (E-Mail, WebPush, Telegram/WhatsApp) fuer Alarme.
+4. Tägliche Datenbank-Backups und JSON-Exporte.
+
+Phase 6 - Erweiterungen und Ausblick
+------------------------------------
+1. OTA-Updates fuer die Firmware und Upload neuer Images ueber die Control-App.
+2. Theme-Anpassungen, Dark-Mode und dynamische Icons/Logos vom Server beziehen.
+3. Vorbereitung auf Multi-Tenant und LoRaWAN-Integration.
+4. Machine-Learning-basierte Regel-Engine als Langzeitprojekt.
+5. Support fuer weitere Plattformen (iOS, weitere Mikrocontroller).
