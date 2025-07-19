@@ -298,7 +298,7 @@ void loop() {
   * `dio` (HTTP-Client)
   * `web_socket_channel` (WebSocket)
   * `provider` / `get_it` (Dependency Injection)
-  * `charts_flutter` (Diagramme)
+  * eigenes `SimpleLineChart` Widget (Diagramme)
   * `flutter_secure_storage` (Token-Speicherung)
   * `responsive_framework` (Responsive Layout)
 

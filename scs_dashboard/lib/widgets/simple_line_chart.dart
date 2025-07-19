@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import '../services/sensor_data_service.dart';
+import '../models/sensor_data.dart';
 
 class SimpleLineChart extends StatelessWidget {
   final List<SensorData> data;
@@ -24,8 +24,12 @@ class _LineChartPainter extends CustomPainter {
     if (data.isEmpty) return;
 
     // 1) Wertebereiche ermitteln
-    final times = data.map((e) => e.timestamp.millisecondsSinceEpoch.toDouble());
-    final vals  = data.map((e) => e.value);
+    final times =
+        data.map((e) => e.timestamp.millisecondsSinceEpoch.toDouble());
+    final vals = data.map((e) {
+      final first = e.dataJson.values.first;
+      return first is num ? first.toDouble() : 0.0;
+    });
     final minT = times.reduce(min), maxT = times.reduce(max);
     final minV = vals .reduce(min), maxV = vals .reduce(max);
     final dt = maxT - minT;
@@ -35,8 +39,10 @@ class _LineChartPainter extends CustomPainter {
     final path = Path();
     for (var i = 0; i < data.length; i++) {
       final e = data[i];
+      final first = e.dataJson.values.first;
+      final val = first is num ? first.toDouble() : 0.0;
       final x = (e.timestamp.millisecondsSinceEpoch - minT) / dt * size.width;
-      final y = size.height - (e.value - minV) / dv * size.height;
+      final y = size.height - (val - minV) / dv * size.height;
       if (i == 0) path.moveTo(x, y);
       else       path.lineTo(x, y);
     }

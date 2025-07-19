@@ -4,27 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/sensor_data.dart';
 
-
-class SensorData {
-  final int id;
-  final DateTime timestamp;
-  final double value; // hier anpassen auf dein JSON-Feld
-
-  SensorData({
-    required this.id,
-    required this.timestamp,
-    required this.value,
-  });
-
-  factory SensorData.fromJson(Map<String, dynamic> json) {
-    return SensorData(
-      id: json['id'] as int,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      value: (json['dataJson']['value'] as num).toDouble(), // passe key an
-    );
-  }
-}
-
 class SensorDataService {
   final Dio _dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
