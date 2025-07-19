@@ -11,7 +11,7 @@
 #include <ArduinoJson.h>
 
 // ② WLAN-Zugangsdaten (auf dem Server ändern, wenn nötig)
-const char* WIFI_SSID     = "CFH-AP";
+const char* WIFI_SSID     = "CFH-AP2.4";
 const char* WIFI_PASSWORD = "wow1234wlanlehr3";
 
 // ③ Server- und Geräte-Konfiguration
