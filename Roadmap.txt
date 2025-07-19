@@ -5,6 +5,8 @@ Phase 1 - Grundlegende Infrastruktur
 3. Datenbank-Migrationen (MariaDB) fuer Geraete, Benutzer und Sensorlogs implementieren.
 4. Grundlegende Authentifizierung (JWT) und WebSocket-Anbindung auf dem Server bereitstellen.
 5. Firmware-Provisionierung via WLAN-Hotspot und automatische Registrierung am Server.
+   - Erste Umsetzung: Firmware speichert Token und meldet sich per POST /devices/register
+     am Server an. Server legt Gerät automatisch an und liefert eine ID zurück.
 
 Phase 2 - Sensor- und Aktorverwaltung
 ------------------------------------

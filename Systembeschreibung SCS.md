@@ -283,6 +283,7 @@ void loop() {
    * `GET /api/v1/devices/{DEVICE_ID}/config` (Rückgabe Konfigurations-JSON)
    * `POST /api/v1/devices/{DEVICE_ID}/data` (Einzelne Sensordaten)
    * `POST /api/v1/devices/{DEVICE_ID}/data/bulk` (Datenpuffer synchronisieren)
+   * `POST /api/v1/devices/register` (Erstregistrierung eines Controllers)
    * `GET /api/v1/rules` (Liste aller Regeln)
    * `POST /api/v1/rules` (Regel anlegen)
    * `DELETE /api/v1/rules/{RULE_ID}` (Regel löschen)
