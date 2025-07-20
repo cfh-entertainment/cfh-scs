@@ -33,13 +33,19 @@ Phase 5 - Monitoring, Logging und Alarmierung
 --------------------------------------------
 1. Sammeln von Telemetrie- und System-Logs, CSV-Export.
 2. Echtzeit-Log-Viewer im Dashboard.
-3. Benachrichtigungssystem (E-Mail, WebPush, Telegram/WhatsApp) fuer Alarme.
-4. Tägliche Datenbank-Backups und JSON-Exporte.
+3. Benachrichtigungssystem (E-Mail, WebPush, Telegram/WhatsApp) fuer Alarme
+   sowie Push-Mitteilungen in der Control-App.
+4. Server-Administrationsansicht mit Systemstatus und Firmware-Upload.
+5. Tägliche Datenbank-Backups und JSON-Exporte.
+
 
 Phase 6 - Erweiterungen und Ausblick
 ------------------------------------
 1. OTA-Updates fuer die Firmware und Upload neuer Images ueber die Control-App.
-2. Theme-Anpassungen, Dark-Mode und dynamische Icons/Logos vom Server beziehen.
-3. Vorbereitung auf Multi-Tenant und LoRaWAN-Integration.
-4. Machine-Learning-basierte Regel-Engine als Langzeitprojekt.
-5. Support fuer weitere Plattformen (iOS, weitere Mikrocontroller).
+2. Server-Administration im Dashboard inkl. Konfiguration der Kommunikations-
+   kanäle.
+3. Theme-Anpassungen, Dark-Mode und dynamische Icons/Logos vom Server beziehen.
+4. Vorbereitung auf Multi-Tenant und LoRaWAN-Integration.
+5. Machine-Learning-basierte Regel-Engine als Langzeitprojekt.
+6. Support fuer weitere Plattformen (iOS, weitere Mikrocontroller).
+
