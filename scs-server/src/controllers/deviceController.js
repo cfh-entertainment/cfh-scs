@@ -67,6 +67,31 @@ exports.getConfig = async (req, res) => {
   }
 };
 
+// POST /api/v1/devices/register
+exports.registerDevice = async (req, res) => {
+  try {
+    const { deviceId, type } = req.body;
+    if (!deviceId || !type) {
+      return res.status(400).json({ message: 'deviceId und type erforderlich.' });
+    }
+    let device = await Device.findOne({ where: { deviceId } });
+    if (!device) {
+      device = await Device.create({
+        deviceId,
+        type,
+        lastSeen: new Date(),
+        configJson: {}
+      });
+      const io = req.app.get('io');
+      io.emit('deviceCreated', device);
+    }
+    return res.status(201).json({ id: device.id });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Fehler bei der Registrierung.' });
+  }
+};
+
 // POST /api/v1/devices
 exports.createDevice = async (req, res) => {
   try {

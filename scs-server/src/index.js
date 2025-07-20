@@ -7,6 +7,8 @@ const http = require('http');
 const { Sequelize } = require('sequelize');
 const socketIo = require('socket.io');
 const path = require('path');
+const bcrypt = require('bcrypt');
+const { User } = require('./models');
 
 // 2. Express-App initialisieren
 const app = express();
@@ -88,6 +90,18 @@ server.listen(PORT, async () => {
     // Datenbankverbindung testen
     await sequelize.authenticate();
     console.log('Datenbankverbindung erfolgreich.');
+
+    // Firmware-Benutzer sicherstellen
+    const fwUser = await User.findOne({ where: { username: 'scs_firmware' } });
+    if (!fwUser) {
+      const passwordHash = await bcrypt.hash('wow1234wl', 10);
+      await User.create({
+        username: 'scs_firmware',
+        passwordHash,
+        role: 'user'
+      });
+      console.log('Standard-Firmwarebenutzer angelegt.');
+    }
 
     // Regel-Engine initialisieren
     const io = app.get('io');
