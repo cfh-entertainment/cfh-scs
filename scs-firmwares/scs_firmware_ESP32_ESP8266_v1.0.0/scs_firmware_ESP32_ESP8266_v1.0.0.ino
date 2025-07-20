@@ -154,6 +154,16 @@ void sendSensorData() {
   // POST absenden
   int code = http.POST(body);
   Serial.printf("POST %s -> %d\n", url.c_str(), code);
+  if (code == 401) {
+    Serial.println("Token ungültig - Login wird erneuert");
+    loginAndStoreToken();
+    http.end();
+    http.begin(url);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", "Bearer " + jwtToken);
+    code = http.POST(body);
+    Serial.printf("POST Retry -> %d\n", code);
+  }
 
   http.end();
 }
@@ -191,6 +201,31 @@ void processCommands() {
     }
   } else {
     Serial.printf("GET commands fehlgeschl.: %d\n", code);
+    if (code == 401) {
+      Serial.println("Token ungueltig - erneuter Login");
+      loginAndStoreToken();
+      http.end();
+      http.begin(url);
+      http.addHeader("Content-Type", "application/json");
+      http.addHeader("Authorization", "Bearer " + jwtToken);
+      code = http.GET();
+      Serial.printf("GET commands Retry -> %d\n", code);
+      if (code == 200) {
+        String payload = http.getString();
+        StaticJsonDocument<512> doc;
+        DeserializationError err = deserializeJson(doc, payload);
+        if (!err) {
+          JsonArray arr = doc.as<JsonArray>();
+          for (JsonObject cmd : arr) {
+            int pin   = cmd["pin"];
+            int value = cmd["value"];
+            pinMode(pin, OUTPUT);
+            digitalWrite(pin, value ? HIGH : LOW);
+            Serial.printf("CMD: pin %d -> %d\n", pin, value);
+          }
+        }
+      }
+    }
   }
   http.end();
 }
