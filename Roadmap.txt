@@ -38,6 +38,7 @@ Phase 5 - Monitoring, Logging und Alarmierung
 4. Server-Administrationsansicht mit Systemstatus und Firmware-Upload.
 5. Tägliche Datenbank-Backups und JSON-Exporte.
 
+
 Phase 6 - Erweiterungen und Ausblick
 ------------------------------------
 1. OTA-Updates fuer die Firmware und Upload neuer Images ueber die Control-App.
@@ -47,3 +48,4 @@ Phase 6 - Erweiterungen und Ausblick
 4. Vorbereitung auf Multi-Tenant und LoRaWAN-Integration.
 5. Machine-Learning-basierte Regel-Engine als Langzeitprojekt.
 6. Support fuer weitere Plattformen (iOS, weitere Mikrocontroller).
+
