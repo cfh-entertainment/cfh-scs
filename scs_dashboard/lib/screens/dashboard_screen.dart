@@ -11,6 +11,7 @@ import 'devices/device_list_screen.dart';
 import '../models/device.dart';
 import 'package:provider/provider.dart';
 import '../../theme_manager.dart';
+import 'admin/admin_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String ip;
@@ -139,6 +140,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               context,
               MaterialPageRoute(
                 builder: (_) => UserListScreen(ip: widget.ip),
+              ),
+            ),
+          ),
+
+          // Administration
+          IconButton(
+            icon: const Icon(Icons.admin_panel_settings),
+            tooltip: 'Administration',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AdminScreen(ip: widget.ip),
               ),
             ),
           ),

@@ -373,6 +373,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
+  file_picker:
+    dependency: "direct main"
+    description:
+      name: file_picker
+      sha256: "f52c772316bed112fb0a225e0eaa90bf34e66b4fab79e2b0690f9bfb0c5b7b20"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.1.1"
   socket_io_common:
     dependency: transitive
     description:
