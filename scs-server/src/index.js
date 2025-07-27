@@ -60,6 +60,10 @@ const io = socketIo(server, {
   const ruleRoutes = require('./routes/rule');
   app.use('/api/v1/rules', ruleRoutes);
 
+// Admin-Management
+  const adminRoutes = require('./routes/admin');
+  app.use('/api/v1/admin', adminRoutes);
+
 // 4. Datenbankverbindung initialisieren
 const sequelize = new Sequelize(
   process.env.DB_NAME, 

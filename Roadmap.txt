@@ -35,7 +35,7 @@ Phase 5 - Monitoring, Logging und Alarmierung
 2. Echtzeit-Log-Viewer im Dashboard. (erledigt)
 3. Benachrichtigungssystem (E-Mail, WebPush, Telegram/WhatsApp) fuer Alarme (erledigt)
    sowie Push-Mitteilungen in der Control-App.
-4. Server-Administrationsansicht mit Systemstatus und Firmware-Upload.
+4. Server-Administrationsansicht mit Systemstatus und Firmware-Upload. (erledigt)
 5. Tägliche Datenbank-Backups und JSON-Exporte.
 
 
