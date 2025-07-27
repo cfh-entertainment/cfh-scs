@@ -2,6 +2,7 @@
 
 const cron         = require('node-cron');
 const { Rule, Device } = require('../models');
+const { sendNotification } = require('./notificationService');
 
 /**
  * Prüft, ob eine Bedingung (conditionJson) erfüllt ist.
@@ -28,6 +29,11 @@ async function executeAction(deviceId, actionJson, io) {
   // Hier würdest du entweder HTTP/MQTT/WebSocket an das Gerät senden.
   // Beispiel: per WebSocket
   io.to(`device_${deviceId}`).emit('executeAction', actionJson);
+  await sendNotification(
+    io,
+    deviceId,
+    `Aktion ausgelöst: ${JSON.stringify(actionJson)}`
+  );
 }
 
 /**

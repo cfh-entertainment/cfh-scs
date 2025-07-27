@@ -44,6 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       onCreated: (d) => _addDevice(d),
       onUpdated: (d) => _updateDevice(d),
       onDeleted: (id) => _removeDevice(id),
+      onNotification: (msg) => _showNotification(msg),
     );
   }
 
@@ -78,6 +79,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       _devices.removeWhere((dev) => dev.id == id);
     });
+  }
+
+  void _showNotification(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg)),
+    );
   }
 
   @override
