@@ -5,6 +5,7 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 typedef DeviceCreatedCallback = void Function(Map<String, dynamic> device);
 typedef DeviceUpdatedCallback = void Function(Map<String, dynamic> device);
 typedef DeviceDeletedCallback = void Function(int id);
+typedef NotificationCallback = void Function(String message);
 
 class WSService {
   late IO.Socket _socket;
@@ -12,7 +13,8 @@ class WSService {
   void connect(String ip,
       {required DeviceCreatedCallback onCreated,
        required DeviceUpdatedCallback onUpdated,
-       required DeviceDeletedCallback onDeleted}) {
+       required DeviceDeletedCallback onDeleted,
+       NotificationCallback? onNotification}) {
     final uri = 'http://$ip:3000';
     _socket = IO.io(uri, <String, dynamic>{
       'transports': ['websocket'],
@@ -34,6 +36,12 @@ class WSService {
         : int.tryParse(rawId.toString()) ?? 0;
       onDeleted(id);
     });
+    if (onNotification != null) {
+      _socket.on('notification', (data) {
+        final msg = data is String ? data : (data['message'] ?? '').toString();
+        onNotification(msg);
+      });
+    }
   }
 
   void disconnect() {
